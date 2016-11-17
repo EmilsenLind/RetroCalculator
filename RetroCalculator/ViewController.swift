@@ -68,15 +68,21 @@ class ViewController: UIViewController {
     }
     
     @IBAction func numberPressed(_ sender: UIButton) {
-        for tag in 0...9 {
+        for tag in 0...10 {
             if sender.tag == tag {
+                if sender.tag == 10 {
+                    runningNumber.append(",")
+                }
+                if sender.tag != 10 {
                 runningNumber.append(String(tag))
+                }
             }
             
             
         }
         print("number pressed with tag: \(sender.tag)")
         updateUI()
+        
         
         
     }
@@ -89,11 +95,20 @@ class ViewController: UIViewController {
         let numberFormatter = NumberFormatter()
         numberFormatter.groupingSeparator = "."
         numberFormatter.numberStyle = .decimal
+        numberFormatter.decimalSeparator = ","
+            if runningNumber.contains(",") {
+            numberFormatter.alwaysShowsDecimalSeparator = true
+            } else {
+                numberFormatter.alwaysShowsDecimalSeparator = false
+            }
+            numberFormatter.maximumFractionDigits = 15
+            numberFormatter.negativeFormat = "-"
         let runningNSNumber = numberFormatter.number(from: runningNumber)
         if runningNumber.characters.count >= 20 {
             self.label.text = String(describing: runningNSNumber!)
         } else {
         self.label.text = numberFormatter.string(from: runningNSNumber!)
+            
         }
         } else {
             self.label.text = ""
@@ -101,6 +116,7 @@ class ViewController: UIViewController {
     }
     
     func processOperation(operation: Operation) {
+        self.runningNumber = runningNumber.replacingOccurrences(of: ",", with: ".")
         if currentOperation != .Empty {
         
             //if an operation has been set
@@ -108,11 +124,30 @@ class ViewController: UIViewController {
             rightHand = Double(runningNumber)!
             }
             
-            
-            
-            if operation == .Equal && currentOperation != .Equal || currentOperation == operation {
+            if operation != currentOperation && operation != .Equal {
+                if currentOperation == .Add {
+                    result = leftHand + rightHand
+                } else if currentOperation == .Subtract {
+                    result = leftHand - rightHand
+                } else if currentOperation == .Multiply {
+                    result = leftHand * rightHand
+                } else if currentOperation == .Divide {
+                    result = leftHand / rightHand
+                }
+                runningNumber = String(result)
+                if runningNumber != "" {
+                    runningNumber = runningNumber.replacingOccurrences(of: ".", with: ",")
+                }
+                updateUI()
+                runningNumber = ""
+                leftHand = result
+                currentOperation = operation
+
+            } else if operation == .Equal && currentOperation != .Equal || currentOperation == operation {
+                print("operation == .Equal && currentOperation != .Equal || currentOperation == operation")
                 if operation != .Equal {
                     currentOperation = operation
+                    print("operation != .Equal")
                 }
                 
                 if currentOperation == .Add {
@@ -124,8 +159,11 @@ class ViewController: UIViewController {
                 } else if currentOperation == .Divide {
                     result = leftHand / rightHand
                 }
-                print("first test if being called")
+                
                 runningNumber = String(result)
+                if runningNumber != "" {
+                    runningNumber = runningNumber.replacingOccurrences(of: ".", with: ",")
+                }
                 updateUI()
                 runningNumber = ""
                 leftHand = result
@@ -141,6 +179,8 @@ class ViewController: UIViewController {
             currentOperation = operation
             runningNumber = ""
         }
+       
+        
     }
     override func viewDidLoad() {
         super.viewDidLoad()
